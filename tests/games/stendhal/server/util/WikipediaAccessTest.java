@@ -56,6 +56,7 @@ public class WikipediaAccessTest {
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
+	@Ignore
 	public void testStendhal() {
 		final String response = getWikiText("Stendhal");
 
