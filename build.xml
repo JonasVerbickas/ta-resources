@@ -97,21 +97,6 @@
 		</and>
 	</condition>
 
-	<!-- Android properties -->
-
-	<condition property="exclude.webview" value="true">
-		<and>
-			<not>
-				<isset property="env.ANDROID_SDK_ROOT" />
-			</not>
-			<not>
-				<available file="${user.dir}/android/local.properties" />
-			</not>
-		</and>
-	</condition>
-
-	<!-- END: Android properties -->
-
 
 	<target name="init">
 		<mkdir dir="${lib}"/>
@@ -188,7 +173,6 @@
 		<delete dir="${build_cobertura}"/>
 		<delete dir="${build_cobertura_report}"/>
 		<delete file="cobertura.ser" />
-		<delete dir="android/app/build/" />
 		<delete>
 					<fileset dir=".">
 						<include name="TEST-*.xml"/>
@@ -597,51 +581,6 @@
 		<jar jarfile="${lib}/${client_music_data}" basedir="${build_client_music_data}"/>
 
 	</target>
-
-	<target name="client_android_build">
-		<echo
-			if:set="exclude.webview"
-			message="ANDROID_SDK_ROOT environment variable not set. Skipping Android WebView client build." />
-		<echo
-			unless:set="exclude.webview"
-			message="Building Android WebView client." />
-
-		<condition property="gradlew" value="${user.dir}/android/gradlew.bat">
-			<os family="windows" />
-		</condition>
-		<property name="gradlew" value="${user.dir}/android/gradlew" />
-
-		<property name="android.build" value="assembleDebug" />
-
-		<condition property="android.build_wout_rev">
-			<and>
-				<not>
-					<isset property="android.rev" />
-				</not>
-				<not>
-					<isset property="gradle.params" />
-				</not>
-			</and>
-		</condition>
-		<condition property="android.build_w_rev">
-			<and>
-				<isset property="android.rev" />
-				<not>
-					<isset property="gradle.params" />
-				</not>
-			</and>
-		</condition>
-
-		<exec unless:set="exclude.webview" failonerror="true"
-				executable="${gradlew}" dir="android/">
-			<arg if:set="gradle.params" line="${gradle.params}" />
-			<arg if:set="android.build_wout_rev" value="${android.build}" />
-			<arg if:set="android.build_w_rev" line="-Pandroid.rev=${android.rev} ${android.build}" />
-		</exec>
-	</target> <!-- client_android_build -->
-
-	<target name="build_android_client" depends="client_android_build" />
-
 	<target name="signjar" unless="exclude.signing">
 		<signjar
 			alias="${keystore.alias}"
@@ -727,7 +666,7 @@
 
 	<target name="dist" depends="clean, dist_binary, dist_source, signupdates" description="Creates all the packages needed for a Stendhal release"/>
 
-	<target name="dist_binary" depends="clean, dist_server_binary, dist_client_binary, dist_client_starter, dist_client_android"/>
+	<target name="dist_binary" depends="clean, dist_server_binary, dist_client_binary, dist_client_starter"/>
 
 	<target name="dist_server_binary" depends="server_build">
 		<mkdir dir="${buildroot}/stendhal-server-${version}"/>
@@ -847,20 +786,6 @@
 		<delete dir="${buildroot}/stendhal-${version}"/>
 	</target>
 
-	<target name="dist_client_android">
-		<echo
-			if:set="exclude.webview"
-			message="ANDROID_SDK_ROOT environment variable not set. Skipping Android WebView client build." />
-
-		<antcall unless:set="exclude.webview" target="client_android_build" />
-		<copy unless:set="exclude.webview" todir="${buildroot}" flatten="true">
-			<fileset dir="${buildroot}/build_android_client/outputs/apk/">
-				<include name="**/*.apk" />
-			</fileset>
-		</copy>
-	</target> <!-- dist_client_android -->
-
-	<target name="dist_android_client" depends="dist_client_android" />
 
 	<target name="dist_source">
 		<mkdir dir="${buildroot}/stendhal-${version}-src"/>
@@ -1123,7 +1048,6 @@
 			</classpath>
 			<arg value="src/" />
 			<arg value="tests/" />
-			<arg value="android/app/src/" />
 			<arg value="java,xml,lua" />
 		</java>
 
