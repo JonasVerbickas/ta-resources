@@ -20,3 +20,8 @@ find . -name '*.xcf.bz2' -delete         #these are GIMP files - so work in prog
 find . -name '*.xcf' -delete             #these are GIMP files - so work in progress, no actual pictures
 find . -name '*.psd' -delete             #similar, but Photoshop files
 
+
+find . -regex "..*png" | xargs -I{} pngquant -s1 -f --strip --skip-if-larger --posterize 4 --ext ".png" {}
+# these are split up, because ffmpeg cannot overwrite files
+find . -regex "..*\.ogg" | xargs -I{} ffmpeg -i {} -ar 44100 -ab 45k {}compressed.ogg
+find . | egrep -o "..*\.ogg(.*?)c" | egrep -o "..*ogg" | xargs -I{} mv {}compressed.ogg {}
